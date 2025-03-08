@@ -250,18 +250,18 @@ static jv f_negate(jq_state *jq, jv input) {
   return ret;
 }
 
-static jv f_alert_copy(jq_state *jq, jv a, jv b) {
+static jv f_tag(jq_state *jq, jv a, jv b) {
     /* only meaningful for objects and arrays */
     if (jv_get_kind(b) != JV_KIND_NUMBER) {
         jv_free(a);
         return type_error(b, "is not a number");
     }
-    a.alert_copy = jv_number_value(b);
+    a.tag = jv_number_value(b);
     jv_free(b);
     return a;
 }
 
-static jv f_refcnt(jq_state *jq, jv a) {
+static jv f_refcount(jq_state *jq, jv a) {
     if (jv_get_kind(a) != JV_KIND_OBJECT && jv_get_kind(a) != JV_KIND_ARRAY)
         return type_error(a, "is not an object or array");
     int refcnt = *(int *)a.u.ptr;
@@ -269,9 +269,9 @@ static jv f_refcnt(jq_state *jq, jv a) {
     return jv_number(refcnt);
 }
 
-static jv f_count_copy(jq_state *jq, jv a) {
+static jv f_readtag(jq_state *jq, jv a) {
     /* TODO type checking */
-    unsigned char num = a.alert_copy;
+    unsigned char num = a.tag;
     jv_free(a);
     return jv_number(num);
 }
@@ -1916,9 +1916,9 @@ BINOPS
   CFUNC(f_tostring, "tostring", 1),
   CFUNC(f_keys, "keys", 1),
   CFUNC(f_keys_unsorted, "keys_unsorted", 1),
-  CFUNC(f_alert_copy, "acopy", 2),
-  CFUNC(f_count_copy, "ccopy", 1),
-  CFUNC(f_refcnt, "refcnt", 1),
+  CFUNC(f_tag, "_tag", 2),
+  CFUNC(f_readtag, "_readtag", 1),
+  CFUNC(f_refcount, "_refcount", 1),
   CFUNC(f_startswith, "startswith", 2),
   CFUNC(f_endswith, "endswith", 2),
   CFUNC(f_string_split, "split", 2),

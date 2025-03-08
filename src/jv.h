@@ -33,7 +33,7 @@ struct jv_refcnt;
    Really. Do not play with them. */
 typedef struct {
   unsigned char kind_flags;
-  unsigned char alert_copy; /* TODO: see if we can/should put this in kind_flags + find better name */
+  unsigned char tag; /* tag used for tracking copies */
   unsigned short offset;  /* array offsets */
   int size;
   union {
