@@ -889,6 +889,8 @@ static jv* jvp_array_write(jv* a, int i) {
     a->size = imax(i + 1, a->size);
     return &array->elements[pos];
   } else {
+    if (a->alert_copy && !jvp_refcnt_unshared(a->u.ptr))
+      fprintf(stderr, "Making a copy of array %d\n", a->alert_copy);
     // allocate a new array
     int new_length = imax(i + 1, jvp_array_length(*a));
     jvp_array* new_array = jvp_array_alloc(ARRAY_SIZE_ROUND_UP(new_length));
@@ -901,8 +903,9 @@ static jv* jvp_array_write(jv* a, int i) {
       new_array->elements[j] = JV_NULL;
     }
     new_array->length = new_length;
+    unsigned char tmp = a->alert_copy;
     jvp_array_free(*a);
-    jv new_jv = {JVP_FLAGS_ARRAY, 0, 0, new_length, {&new_array->refcnt}};
+    jv new_jv = {JVP_FLAGS_ARRAY, tmp, 0, new_length, {&new_array->refcnt}};
     *a = new_jv;
     return &new_array->elements[i];
   }
@@ -1693,7 +1696,11 @@ static jv jvp_object_unshare(jv object) {
   if (jvp_refcnt_unshared(object.u.ptr))
     return object;
 
+  if (object.alert_copy)
+      fprintf(stderr, "Making a copy of object %d\n", object.alert_copy);
+
   jv new_object = jvp_object_new(jvp_object_size(object));
+  new_object.alert_copy = object.alert_copy;
   jvp_object_ptr(new_object)->next_free = jvp_object_ptr(object)->next_free;
   for (int i=0; i<jvp_object_size(new_object); i++) {
     struct object_slot* old_slot = jvp_object_get_slot(object, i);
